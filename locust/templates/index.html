@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Locust</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css?v={{ version }}" media="screen">
-    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon" />
 </head>
+
 <body class="{{state}}">
     <div class="top">
         <div class="top-content container">
@@ -22,10 +24,10 @@
                     <a href="#" class="edit_test">Edit</a>
                 </div>
                 {% if is_distributed %}
-                    <div class="top_box box_slaves" id="box_rps">
-                        <div class="label">SLAVES</div>
-                        <div class="value" id="slaveCount">{{slave_count}}</div>
-                    </div>
+                <div class="top_box box_slaves" id="box_rps">
+                    <div class="label">SLAVES</div>
+                    <div class="value" id="slaveCount">{{slave_count}}</div>
+                </div>
                 {% endif %}
                 <div class="top_box box_rps box_running" id="box_rps">
                     <div class="label">RPS</div>
@@ -39,6 +41,16 @@
                     <a href="/stop" class="stop-button"><i></i>STOP</a>
                     <a href="/stats/reset" class="reset-button">Reset<br>Stats</a>
                 </div>
+
+                <div class="top_box">
+                    <select id="locust_tests_options">
+                    {% for t in locust_tests %}
+                    <option value={{t}}>{{t}}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+
+
             </div>
             <div style="clear:both;"></div>
         </div>
@@ -152,21 +164,19 @@
             <div class="padder">
                 <h1>About</h1>
                 <p>
-                    The original idea for Locust was Carl Byström's who made a first proof of concept in June 2010.
-                    Jonatan Heyman picked up Locust in January 2011, implemented the current concept of Locust classes
-                    and made it work distributed across multiple machines.
+                    The original idea for Locust was Carl Byström's who made a first proof of concept in June 2010. Jonatan Heyman picked up
+                    Locust in January 2011, implemented the current concept of Locust classes and made it work distributed
+                    across multiple machines.
                 </p>
                 <p>
-                    Jonatan, Carl and Joakim Hamrén has continued the development of Locust at their job,
-                    ESN Social Software, who have adopted Locust as an inhouse Open Source project.
+                    Jonatan, Carl and Joakim Hamrén has continued the development of Locust at their job, ESN Social Software, who have adopted
+                    Locust as an inhouse Open Source project.
                 </p>
 
                 <h1>Authors and Copyright</h1>
                 <a href="http://cgbystrom.com/">Carl Byström</a> (<a href="http://twitter.com/cgbystrom/">@cgbystrom</a>)<br>
-                <a href="http://heyman.info/">Jonatan Heyman</a> (<a href="http://twitter.com/jonatanheyman/">@jonatanheyman</a>)<br>
-                Joakim Hamrén (<a href="http://twitter.com/Jahaaja/">@jahaaja</a>)<br>
-                <a href="http://esn.me/">ESN Social Software</a> (<a href="http://twitter.com/uprise_ea/">@uprise_ea</a>)<br>
-                Hugo Heyman (<a href="http://twitter.com/hugoheyman/">@hugoheyman</a>)
+                <a href="http://heyman.info/">Jonatan Heyman</a> (<a href="http://twitter.com/jonatanheyman/">@jonatanheyman</a>)<br>                Joakim Hamrén (<a href="http://twitter.com/Jahaaja/">@jahaaja</a>)<br>
+                <a href="http://esn.me/">ESN Social Software</a> (<a href="http://twitter.com/uprise_ea/">@uprise_ea</a>)<br>                Hugo Heyman (<a href="http://twitter.com/hugoheyman/">@hugoheyman</a>)
 
 
                 <h1>License</h1>
@@ -233,4 +243,5 @@
     <script type="text/javascript" src="/static/chart.js?v={{ version }}"></script>
     <script type="text/javascript" src="/static/locust.js?v={{ version }}"></script>
 </body>
+
 </html>
