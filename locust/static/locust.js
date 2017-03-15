@@ -4,6 +4,13 @@ $(window).ready(function() {
     }
 });
 
+$("select#locust_tests_options").change(function() {
+    $("select#locust_tests_options option:selected").each(function() {
+        var v = $(this).attr("value")
+        $.post("/switch/", {key: v});
+    });
+})
+
 $("#box_stop a.stop-button").click(function(event) {
     event.preventDefault();
     $.get($(this).attr("href"));
@@ -166,3 +173,4 @@ function updateExceptions() {
     });
 }
 updateExceptions();
+

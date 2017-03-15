@@ -298,6 +298,10 @@ def is_locust(tup):
     )
 
 
+def is_py_file(f):
+    return f.endswith('py') and not f.startswith("__init__")
+
+
 def load_locustfile(path):
     """
     Import given locustfile path and return (docstring, callables).
@@ -335,8 +339,25 @@ def load_locustfile(path):
         sys.path.insert(index + 1, directory)
         del sys.path[0]
     # Return our two-tuple
-    locusts = dict(filter(is_locust, vars(imported).items()))
-    return imported.__doc__, locusts
+    return dict(filter(is_locust, vars(imported).items()))
+
+
+def find_locust_files(folder):
+    locust_files = []
+    for root, _dirs, files in os.walk(folder):
+        for f in files:
+            if is_py_file(f):
+                locust_files.append(os.path.join(root, f))
+
+    return locust_files
+
+
+def load_locust_files(files):
+    res = dict()
+    for f in files:
+        res[f] = load_locustfile(f)
+    return res
+
 
 def main():
     parser, options, arguments = parse_options()
@@ -349,17 +370,33 @@ def main():
         print("Locust %s" % (version,))
         sys.exit(0)
 
-    locustfile = find_locustfile(options.locustfile)
+    if os.path.isdir(options.locustfile):
+        locust_files = find_locust_files(options.locustfile)
 
-    if not locustfile:
-        logger.error("Could not find any locustfile! Ensure file ends in '.py' and see --help for available options.")
-        sys.exit(1)
+        if not locust_files:
+            logger.error("Could not find any locustfile! Ensure file ends in '.py' exist in folder and see --help for available options.")
+            sys.exit(1)
 
-    if locustfile == "locust.py":
-        logger.error("The locustfile must not be named `locust.py`. Please rename the file and try again.")
-        sys.exit(1)
+        logger.info("Found %s python files", len(locust_files))
 
-    docstring, locusts = load_locustfile(locustfile)
+    else:
+        locustfile = find_locustfile(options.locustfile)
+
+        if not locustfile:
+            logger.error("Could not find any locustfile! Ensure file ends in '.py' and see --help for available options.")
+            sys.exit(1)
+
+        if locustfile == "locust.py":
+            logger.error("The locustfile must not be named `locust.py`. Please rename the file and try again.")
+            sys.exit(1)
+
+        locust_files = [locustfile, ]
+
+    runners.locust_tests = load_locust_files(locust_files)
+
+    # set the first test class as default class
+    locusts = runners.locust_tests.values()[0]
+    logger.info("Running task %s", locusts.keys())
 
     if options.list_commands:
         console_logger.info("Available Locusts:")
@@ -410,7 +447,7 @@ def main():
         # spawn web greenlet
         logger.info("Starting web monitor at %s:%s" % (options.web_host or "*", options.port))
         main_greenlet = gevent.spawn(web.start, locust_classes, options)
-    
+
     if not options.master and not options.slave:
         runners.locust_runner = LocalLocustRunner(locust_classes, options)
         # spawn client spawning/hatching greenlet

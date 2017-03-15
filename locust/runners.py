@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 # global locust runner singleton
 locust_runner = None
 
+# global locust available tests
+locust_tests = dict()
+
 STATE_INIT, STATE_HATCHING, STATE_RUNNING, STATE_STOPPED = ["ready", "hatching", "running", "stopped"]
 SLAVE_REPORT_INTERVAL = 3.0
 
@@ -184,6 +187,13 @@ class LocustRunner(object):
         self.state = STATE_STOPPED
         events.locust_stop_hatching.fire()
 
+    def switch(self, key):
+        global locust_tests
+        try:
+            self.locust_classes = locust_tests[key].values()
+        except KeyError:
+            logger.error("No task named %s, restart application to reload tasks", key)
+
     def log_exception(self, node_id, msg, formatted_tb):
         key = hash(formatted_tb)
         row = self.exceptions.setdefault(key, {"count": 0, "msg": msg, "traceback": formatted_tb, "nodes": set()})
@@ -313,6 +323,12 @@ class MasterLocustRunner(DistributedLocustRunner):
             self.server.send(Message("quit", None, None))
         self.greenlet.kill(block=True)
     
+    def switch(self, key):
+        super(MasterLocustRunner, self).switch(key)
+        self.stop()
+        for c in self.clients.itervalues():
+            self.server.send(Message("switch", {"key": key}, None))
+
     def client_listener(self):
         while True:
             msg = self.server.recv()
@@ -397,6 +413,8 @@ class SlaveLocustRunner(DistributedLocustRunner):
                 self.stop()
                 self.client.send(Message("client_stopped", None, self.client_id))
                 self.client.send(Message("client_ready", None, self.client_id))
+            elif msg.type == "switch":
+                self.switch(msg.data["key"])
             elif msg.type == "quit":
                 logger.info("Got quit message from master, shutting down...")
                 self.stop()

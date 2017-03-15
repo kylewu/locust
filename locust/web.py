@@ -41,8 +41,21 @@ def index():
         is_distributed=is_distributed,
         slave_count=slave_count,
         user_count=runners.locust_runner.user_count,
-        version=version
+        version=version,
+        locust_tests=runners.locust_tests
     )
+
+@app.route('/switch/', methods=["POST"])
+def switch():
+    assert request.method == "POST"
+
+    key = request.form["key"]
+    assert key in runners.locust_tests
+
+    runners.locust_runner.stop()
+    runners.locust_runner.stats.reset_all()
+    runners.locust_runner.switch(key)
+    return "ok"
 
 @app.route('/swarm', methods=["POST"])
 def swarm():
